@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PriyankaBot Search | Future of Web</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --accent-color: #38bdf8;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.15) 0, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; }
+
+        /* Auth & Header */
+        .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 50px; }
+        .logo { font-weight: 800; font-size: 1.5rem; letter-spacing: -1px; }
+        
+        .auth-btn {
+            background: var(--accent-color);
+            color: #000;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        /* New: User Avatar & Dropdown */
+        .user-area {
+            position: relative;
+        }
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            background: var(--accent-color);
+            color: black;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+        .user-dropdown {
+            position: absolute;
+            top: 55px;
+            right: 0;
+            background: #1e293b;
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            width: 200px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            display: none;
+            z-index: 100;
+        }
+        .user-dropdown.show { display: block; }
+        .dropdown-item {
+            padding: 14px 20px;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .dropdown-item:hover { background: rgba(56,189,248,0.2); }
+        .dropdown-item.danger:hover { background: #ef4444; color: white; }
+
+        /* Modal for Login/Signup */
+        .modal {
+            display: none;
+            position: fixed;
+            top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-box {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 30px;
+            border: 1px solid var(--glass-border);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+        }
+        .modal input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+        }
+
+        /* Rest of your original CSS - unchanged */
+        .search-section { text-align: center; margin-bottom: 40px; }
+        .search-section h1 { font-size: 3.5rem; margin-bottom: 15px; font-weight: 800; }
+
+        .search-wrapper {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            padding: 8px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .search-wrapper input {
+            background: transparent;
+            border: none;
+            flex: 1;
+            padding: 15px 25px;
+            color: white;
+            font-size: 1.1rem;
+            outline: none;
+        }
+
+        .btn-search {
+            background: white;
+            color: black;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 18px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .filter-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .filter-chip {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-dim);
+            padding: 10px 20px;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .filter-chip.active {
+            background: var(--accent-color);
+            color: black;
+            border-color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .results-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .result-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 25px;
+            border-radius: 24px;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(56, 189, 248, 0.4);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .result-card .category {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .result-card h3 { margin-bottom: 10px; font-size: 1.3rem; }
+        .result-card h3 a { color: var(--text-main); text-decoration: none; }
+        .result-card p { color: var(--text-dim); line-height: 1.6; font-size: 0.95rem; }
+
+        .loading-shimmer {
+            text-align: center;
+            padding: 50px;
+            font-style: italic;
+            color: var(--accent-color);
+        }
+        .result-card .category {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent-color);
+    margin-bottom: 10px;
+    display: block;
+}
+
+/* Share icon hover */
+.result-card > div:last-of-type > div[onclick^="shareResult"] {
+    opacity: 0.6;
+    transition: 0.3s;
+}
+.result-card:hover > div:last-of-type > div[onclick^="shareResult"] {
+    opacity: 1;
+    color: var(--accent-color);
+    transform: scale(1.2);
+}
+#voiceBtn:hover {
+    opacity: 1;
+    color: var(--accent-color);
+    transform: scale(1.1);
+    transition: 0.3s;
+}
+
+#voiceBtn.listening {
+    color: #ef4444;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+/* Stress-Free Cartoon Avatar */
+.cartoon-avatar {
+    display: inline-block;
+    animation: float 6s ease-in-out infinite;
+}
+
+.cartoon-avatar svg {
+    width: 180px;
+    height: 180px;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+}
+
+/* Breathing effect on face */
+.cartoon-avatar circle[fill="#FFDAB9"] {
+    animation: breathe 4s ease-in-out infinite;
+}
+
+@keyframes breathe {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+/* Gentle hair sway */
+.cartoon-avatar path[fill="#4A2C2A"] {
+    animation: sway 8s ease-in-out infinite;
+    transform-origin: center top;
+}
+
+@keyframes sway {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(3deg); }
+    75% { transform: rotate(-3deg); }
+    100% { transform: rotate(0deg); }
+}
+@media (max-width: 768px) {
+    .cartoon-avatar svg {
+        width: 140px;
+        height: 140px;
+    }
+    #avatarContainer p {
+        font-size: 1rem;
+    }
+}
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <nav class="top-nav">
+<div class="logo">PriyankaBot AI</div>
+            <div id="authArea" class="user-area">
+    <!-- Login button (shown when not logged in) -->
+    <button id="loginBtn" class="auth-btn">Login</button>
+
+    <!-- Logged in: Avatar + Dropdown -->
+    <div id="userAvatarBtn" style="display:none; align-items:center; gap:12px;">
+        <img id="userPicture" src="" style="width:42px; height:42px; border-radius:50%; display:none;">
+        <div class="user-avatar" id="avatarInitials"></div>
+        <span id="userName" style="color:white; font-weight:600; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+   
+
+   
+    
+    <!-- NEW: Separate Logout Button -->
+    <button onclick="handleLogout()" id="loginBtn" class="auth-btn" title="Logout">
+        🚪LOGOUT
+    </button>
+</div>
+    </div>
+     </div>
+</div>
+        </nav>
+  
+        <section class="search-section">
+            
+
+            <h1>Discover.</h1>
+
+<!-- Relaxed Cartoon Avatar -->
+<div id="avatarContainer" style="text-align:center; margin:30px 0;">
+    <div class="cartoon-avatar">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <!-- Face -->
+            <circle cx="100" cy="100" r="80" fill="#FFDAB9"/>
+            
+            <!-- Hair -->
+            <path d="M40 80 Q100 20 160 80 Q160 120 100 120 Q40 120 40 80" fill="#4A2C2A"/>
+            
+            <!-- Eyes (closed, relaxed) -->
+            <ellipse cx="70" cy="90" rx="15" ry="8" fill="#333"/>
+            <ellipse cx="130" cy="90" rx="15" ry="8" fill="#333"/>
+            
+            <!-- Happy Smile -->
+            <path d="M70 120 Q100 140 130 120" stroke="#333" stroke-width="6" fill="none" stroke-linecap="round"/>
+            
+            <!-- Blush -->
+            <circle cx="60" cy="110" r="15" fill="#FFB6C1" opacity="0.5"/>
+            <circle cx="140" cy="110" r="15" fill="#FFB6C1" opacity="0.5"/>
+        </svg>
+        <p style="margin-top:15px; color:var(--text-dim); font-size:1.1rem; font-style:italic;">
+            Hi! I'm PriyankaBot 😊<br>Relax & ask me anything...
+        </p>
+    </div>
+</div>
+
+
+<div class="search-wrapper">
+    <input type="text" id="searchInput" placeholder="What are you looking for?">
+    <button class="btn-search" onclick="performSearch()">Search</button>
+    <!-- Voice Mic Button -->
+    <div id="voiceBtn" style="cursor:pointer; padding:15px; font-size:1.4rem; color:white; opacity:0.7;" onclick="startVoiceSearch()" title="Voice Search">🎤</div>
+</div>
+<div class="filter-container">
+    <div class="filter-chip active" onclick="selectFilter(this, 'all')">Everything</div>
+    <!-- <div class="filter-chip" onclick="selectFilter(this, 'google')">Web</div> -->
+    <div class="filter-chip" onclick="selectFilter(this, 'scholar')">Academic</div>
+    <div class="filter-chip" onclick="selectFilter(this, 'articles')">News</div>
+    <div class="filter-chip" onclick="selectFilter(this, 'youtube')">Videos</div>
+    <!-- <div class="filter-chip" onclick="selectFilter(this, 'images')">🖼️ Images</div> -->
+</div>
+        </section>
+
+        <div id="resultsContainer" class="results-grid">
+            <div style="text-align:center; color:var(--text-dim); margin-top:50px;">
+                Start your journey by searching above
+            </div>
+        </div>
+    </div>
+
+    <!-- Login / Signup Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-box">
+            <h2 id="modalTitle">Login</h2>
+            <input type="text" id="nameField" placeholder="Full Name" style="display:none;">
+            <input type="email" id="emailField" placeholder="Email" required>
+            <input type="password" id="passField" placeholder="Password" required>
+            <button class="auth-btn" onclick="handleAuth()" style="margin-top:15px;">Submit</button>
+            <p style="margin-top:20px; color:#888;">
+                <span id="toggleLink" onclick="toggleAuthMode()" style="color:var(--accent-color); cursor:pointer;">Create Account</span>
+            </p>
+            <div style="position:absolute; top:15px; right:20px; font-size:1.8rem; color:white; cursor:pointer;" onclick="closeModal()">×</div>
+        </div>
+    </div>
+
+    <script>
+        let currentType = 'all';
+      
+        let currentUser = null;
+    let userHistory = [];
+
+    // Page load-la user check + history load
+    window.onload = async () => {
+        try {
+            const res = await fetch('/api/user');
+            const data = await res.json();
+
+            if (data.logged_in) {
+                currentUser = data;
+
+                // User area show
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('userAvatarBtn').style.display = 'flex';
+
+                // Name & initials
+                document.getElementById('userName').textContent = data.name;
+                const initials = data.name.split(' ').map(n => n[0].toUpperCase()).join('');
+                document.getElementById('avatarInitials').textContent = initials;
+
+                // Profile picture
+                if (data.picture) {
+                    document.getElementById('userPicture').src = data.picture;
+                    document.getElementById('userPicture').style.display = 'block';
+                    document.getElementById('avatarInitials').style.display = 'none';
+                }
+
+                // Load search history
+                if (data.email) {
+                    userHistory = JSON.parse(localStorage.getItem('history_' + data.email) || '[]');
+                }
+            } else {
+                document.getElementById('loginBtn').onclick = () => {
+                    window.location.href = '/login';
+                };
+            }
+        } catch (e) {
+            console.log('User info load failed');
+        }
+    };
+
+    // My Profile
+    function showProfile() {
+        document.getElementById('resultsContainer').innerHTML = `
+            <div style="text-align:center; padding:80px; background:rgba(255,255,255,0.05); border-radius:24px;">
+                ${currentUser.picture ? `<img src="${currentUser.picture}" style="width:120px; height:120px; border-radius:50%; margin-bottom:20px;">` : 
+                `<div class="user-avatar" style="width:120px; height:120px; font-size:3rem; margin:0 auto 20px;">
+                    ${currentUser.name.split(' ').map(n => n[0].toUpperCase()).join('')}
+                </div>`}
+                <h2 style="margin:20px 0;">${currentUser.name}</h2>
+                <p style="color:var(--text-dim); font-size:1.1rem;">${currentUser.email || 'No email'}</p>
+            </div>
+        `;
+        document.getElementById('userDropdown').classList.remove('show');
+    }
+
+    // Search History
+    function showHistory() {
+        const container = document.getElementById('resultsContainer');
+        if (userHistory.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:100px; color:var(--text-dim);">No search history yet 😔</div>';
+        } else {
+            let html = '<h2 style="text-align:center; margin:30px 0; color:white;">📜 Search History</h2><div style="max-width:600px; margin:0 auto;">';
+            userHistory.slice().reverse().forEach(q => {
+                html += `
+                    <div style="padding:18px; background:rgba(255,255,255,0.05); border-radius:16px; margin-bottom:12px; cursor:pointer;"
+                         onclick="document.getElementById('searchInput').value='${q.replace(/'/g, "\\'")}'; performSearch();">
+                        <strong style="color:white;">${q}</strong>
+                    </div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        document.getElementById('userDropdown').classList.remove('show');
+    }
+
+    // Logout
+    function handleLogout() {
+        fetch('/logout')
+            .then(() => {
+                if (currentUser && currentUser.email) {
+                    localStorage.removeItem('history_' + currentUser.email);
+                }
+                location.reload();
+            })
+            .catch(() => location.reload());
+    }
+
+    // Dropdown toggle
+    function toggleDropdown() {
+        document.getElementById('userDropdown').classList.toggle('show');
+    }
+
+    // Click outside close
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.user-area')) {
+            document.getElementById('userDropdown').classList.remove('show');
+        }
+    });
+       
+        // Load user on page load
+        window.onload = () => {
+            const savedUser = localStorage.getItem('nexusUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                userHistory = JSON.parse(localStorage.getItem('nexusHistory_' + currentUser.email) || '[]');
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('userAvatarBtn').style.display = 'block';
+                document.getElementById('avatarInitials').innerText = currentUser.name.split(' ').map(n => n[0].toUpperCase()).join('');
+            }
+
+            // Enter key search
+            document.getElementById('searchInput').addEventListener('keypress', e => {
+                if (e.key === 'Enter') performSearch();
+            });
+        };
+        // Voice Search using Web Speech API
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+
+if (recognition) {
+    recognition.continuous = false;
+    recognition.lang = 'ta-IN';  // ← Ippo Tamil support!
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('searchInput').value = transcript;
+        performSearch();
+        stopListening();
+    };
+
+    recognition.onerror = (event) => {
+        console.log('Voice error:', event.error);
+        alert('Voice recognition error. Try speaking clearly in Tamil.');
+        stopListening();
+    };
+
+    recognition.onend = () => {
+        stopListening();
+    };
+}
+
+
+if (recognition) {
+    recognition.continuous = false;
+    recognition.lang = 'en-US';  // Tamil venuma-na 'ta-IN' podalaam, but support limited
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('searchInput').value = transcript;
+        performSearch();
+        stopListening();
+    };
+
+    recognition.onerror = (event) => {
+        alert('Voice recognition error: ' + event.error);
+        stopListening();
+    };
+
+    recognition.onend = () => {
+        stopListening();
+    };
+}
+
+function startVoiceSearch() {
+    if (!recognition) {
+        alert('Sorry, your browser doesn\'t support voice search 😔');
+        return;
+    }
+
+    document.getElementById('voiceBtn').classList.add('listening');
+    document.getElementById('voiceBtn').innerText = '🔴';  // Recording indicator
+    recognition.start();
+}
+
+function stopListening() {
+    document.getElementById('voiceBtn').classList.remove('listening');
+    document.getElementById('voiceBtn').innerText = '🎤';
+}
+
+        function openAuthModal() {
+            document.getElementById('authModal').style.display = 'flex';
+            document.getElementById('modalTitle').innerText = 'Login';
+            document.getElementById('nameField').style.display = 'none';
+            document.getElementById('toggleLink').innerText = 'Create Account';
+        }
+
+        function toggleAuthMode() {
+            const isLogin = document.getElementById('modalTitle').innerText === 'Login';
+            document.getElementById('modalTitle').innerText = isLogin ? 'Create Account' : 'Login';
+            document.getElementById('nameField').style.display = isLogin ? 'block' : 'none';
+            document.getElementById('toggleLink').innerText = isLogin ? 'Already have account? Login' : 'Create Account';
+        }
+
+        function closeModal() {
+            document.getElementById('authModal').style.display = 'none';
+        }
+
+        function handleAuth() {
+            const email = document.getElementById('emailField').value.trim();
+            const password = document.getElementById('passField').value;
+            const name = document.getElementById('nameField').value.trim() || email.split('@')[0];
+
+            if (!email || !password) {
+                alert('Please fill email and password');
+                return;
+            }
+
+            currentUser = { name, email };
+            localStorage.setItem('nexusUser', JSON.stringify(currentUser));
+            userHistory = [];
+
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('userAvatarBtn').style.display = 'block';
+            document.getElementById('avatarInitials').innerText = name.split(' ').map(n => n[0].toUpperCase()).join('');
+            closeModal();
+        }
+
+        function toggleDropdown() {
+            document.getElementById('userDropdown').classList.toggle('show');
+        }
+
+        function showProfile() {
+            document.getElementById('resultsContainer').innerHTML = `
+                <div style="text-align:center; padding:80px; background:rgba(255,255,255,0.05); border-radius:24px;">
+                    <div class="user-avatar" style="width:100px; height:100px; font-size:2.5rem; margin:0 auto 20px;">
+                        ${currentUser.name.split(' ').map(n => n[0].toUpperCase()).join('')}
+                    </div>
+                    <h2>${currentUser.name}</h2>
+                    <p style="color:var(--text-dim); margin-top:10px;">${currentUser.email}</p>
+                </div>
+            `;
+            toggleDropdown();
+        }
+
+        function showHistory() {
+            if (userHistory.length === 0) {
+                document.getElementById('resultsContainer').innerHTML = '<div style="text-align:center; padding:100px; color:var(--text-dim);">No search history yet</div>';
+            } else {
+                let html = '<h2 style="text-align:center; margin-bottom:20px;">📜 Search History</h2>';
+                userHistory.slice().reverse().forEach(q => {
+                    html += `<div style="padding:15px; background:rgba(255,255,255,0.05); border-radius:12px; margin-bottom:10px; cursor:pointer;" onclick="document.getElementById('searchInput').value='${q}'; performSearch();">
+                        <strong>${q}</strong>
+                    </div>`;
+                });
+                document.getElementById('resultsContainer').innerHTML = html;
+            }
+            toggleDropdown();
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('nexusUser');
+            localStorage.removeItem('nexusHistory_' + currentUser.email);
+            location.reload();
+        }
+
+        // Your original functions - untouched
+        function selectFilter(el, type) {
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            currentType = type;
+
+            const query = document.getElementById('searchInput').value.trim();
+            if (query) performSearch();
+        }
+        function shareResult(title, url) {
+    const shareText = `Check this out from Nexus.AI: "${title}"\n${url}`;
+
+    // Native share if available (mobile)
+    if (navigator.share) {
+        navigator.share({
+            title: title,
+            text: 'Found on Nexus.AI',
+            url: url
+        }).catch(() => {
+            copyToClipboard(shareText);
+        });
+    } else {
+        // Fallback: copy to clipboard
+        copyToClipboard(shareText);
+    }
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Link copied to clipboard! Share it anywhere 📋');
+    }).catch(() => {
+        // Fallback for old browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        alert('Link copied! 📋');
+    });
+}
+function shareResult(title, url) {
+    const shareText = `Check this out from PriyankaBot AI: "${title}"\n${url}`;
+
+    if (navigator.share) {
+        navigator.share({
+            title: title,
+            text: 'Found on PriyankaBot AI',
+            url: url
+        }).catch(() => {
+            copyToClipboard(shareText);
+        });
+    } else {
+        copyToClipboard(shareText);
+    }
+}
+        async function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            // Save to history if logged in
+            if (currentUser && !userHistory.includes(query)) {
+                userHistory.push(query);
+                if (userHistory.length > 20) userHistory.shift();
+                localStorage.setItem('nexusHistory_' + currentUser.email, JSON.stringify(userHistory));
+            }
+
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '<div class="loading-shimmer">Accessing database...</div>';
+
+            try {
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({query: query, search_type: currentType})
+                });
+                const data = await response.json();
+
+               if(data.status === 'success') {
+    container.innerHTML = data.results.map(r => `
+        <div class="result-card">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <span class="category">${r.source}</span>
+                <div style="cursor:pointer; font-size:1.2rem; color:var(--text-dim);" onclick="shareResult('${r.title}', '${r.url}')">↗</div>
+            </div>
+            <h3><a href="${r.url}" target="_blank" rel="noopener">${r.title}</a></h3>
+            <p>${r.snippet}</p>
+            <div style="margin-top:15px; font-size:0.8rem; color:var(--accent-color); word-break:break-all;">
+                ${r.url}
+            </div>
+        </div>
+    `).join('');
+}
+            } catch(e) {
+                container.innerHTML = `<p style="text-align:center; color:red">Offline mode or Error.</p>`;
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.user-area')) {
+                document.getElementById('userDropdown').classList.remove('show');
+            }
+        });
+        window.onload = async () => {
+    // Fetch current user from backend
+    try {
+        const res = await fetch('/api/user');
+        const data = await res.json();
+
+        if (data.logged_in) {
+            // Hide login button, show user info
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('userAvatarBtn').style.display = 'flex';
+
+            // Show name
+            document.getElementById('userName').textContent = data.name;
+
+            // Show initials
+            const initials = data.name.split(' ').map(n => n[0].toUpperCase()).join('');
+            document.getElementById('avatarInitials').textContent = initials;
+
+            // Show picture if available (Google/GitHub)
+            if (data.picture) {
+                document.getElementById('userPicture').src = data.picture;
+                document.getElementById('userPicture').style.display = 'block';
+                document.getElementById('avatarInitials').style.display = 'none';
+            }
+
+            // For search history (optional - use email if available)
+            if (data.email) {
+                userHistory = JSON.parse(localStorage.getItem('nexusHistory_' + data.email) || '[]');
+            }
+        } else {
+            // Not logged in - show login button that goes to /login
+            document.getElementById('loginBtn').onclick = () => {
+                window.location.href = '/login';
+            };
+        }
+    } catch (e) {
+        console.log('Could not fetch user info');
+    }
+
+    // Enter to search
+    document.getElementById('searchInput').addEventListener('keypress', e => {
+        if (e.key === 'Enter') performSearch();
+    });
+};
+function handleLogout() {
+    fetch('/logout').then(() => {
+        location.reload();
+    });
+}
+    </script>
+</body>
+</html>
